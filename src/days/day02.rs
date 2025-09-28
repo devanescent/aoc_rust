@@ -5,7 +5,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
    	let mut prgm : Vec<u64> = input
 	   	.trim_end()
         .split(',')
-		.map(|s| u64::from_str(s).expect(format!("Expected u64 in program, found '{}'", s).as_str()))
+		.map(|s| u64::from_str(s).unwrap())
 		.collect();
 
 	// Do replacements and run program:
@@ -14,6 +14,31 @@ pub fn solve_part1(input: &String) -> AoCResult {
 	run_program(&mut prgm);
 
 	AoCResult::Num(prgm[0])
+}
+
+pub fn solve_part2(input: &String) -> AoCResult {
+	let prgm : Vec<u64> = input
+		.trim_end()
+		.split(',')
+		.map(|s| u64::from_str(s).unwrap())
+		.collect();
+
+	// Try replacements until output 19690720 is found
+	for noun in 0..99 {
+		for verb in 0..99 {
+			// Use a fresh copy for each attempt:
+			let mut prgm_cpy = prgm.clone();
+			prgm_cpy[1] = noun;
+			prgm_cpy[2] = verb;
+
+			run_program(&mut prgm_cpy);
+			if prgm_cpy[0] == 19690720 {
+				return AoCResult::Num(100 * noun + verb);
+			}
+		}
+	}
+
+	panic!("No solution found");
 }
 
 fn run_program(prgm: &mut Vec<u64>) {
