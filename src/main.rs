@@ -1,12 +1,25 @@
-mod aoc_result;
-mod days;
-
-use crate::days::day03;
+use clap::Parser;
 use std::fs;
+use aoc_2019::aoc_result::AoCResult;
+
+#[derive(Parser)]
+struct Args {
+    day: u8,
+
+    #[arg(default_value = "1")]
+    part: u8,
+}
 
 fn main() {
-    let data =
-        fs::read_to_string("input.txt").expect("Expected file 'input.txt' in project directory");
-    println!("Day 03 (part 1): {}", day03::solve_part1(&data));
-    println!("Day 03 (part 2): {}", day03::solve_part2(&data));
+    let args = Args::parse();
+
+    let input =
+        fs::read_to_string("input.txt")
+        .expect("Expected file 'input.txt' in project directory");
+
+    let res = aoc_2019::solve(args.day, args.part, &input);
+    match res {
+        AoCResult::Num(_) | AoCResult::Str(_) => println!("Day {:02} (part {}): {}", args.day, args.part, res),
+        _ =>  println!("Error: {}", res)
+    };
 }

@@ -1,6 +1,8 @@
 use crate::aoc_result::AoCResult;
 use std::str::FromStr;
 
+make_day!(Day02);
+
 pub fn solve_part1(input: &String) -> AoCResult {
    	let mut prgm : Vec<u64> = input
 	   	.trim_end()

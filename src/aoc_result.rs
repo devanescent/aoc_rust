@@ -4,6 +4,8 @@ use std::fmt;
 pub enum AoCResult {
     Num(u64),
     Str(String),
+    InvalidDayErr(u8),
+    InvalidPartErr(u8, u8),
 }
 
 impl std::fmt::Display for AoCResult {
@@ -11,6 +13,8 @@ impl std::fmt::Display for AoCResult {
         match &self {
             AoCResult::Num(n) => write!(f, "{}", n),
             AoCResult::Str(s) => write!(f, "{}", s),
+            AoCResult::InvalidDayErr(day) => write!(f, "Invalid argument: no day {}", day),
+            AoCResult::InvalidPartErr(day, part) => write!(f, "Invalid argumuent: no part {} on day {}", part, day)
         }
     }
 }

@@ -1,6 +1,8 @@
 use crate::aoc_result::AoCResult;
 use std::str::FromStr;
 
+make_day!(Day01);
+
 pub fn solve_part1(input: &String) -> AoCResult {
     let res: u64 = input
         .lines()

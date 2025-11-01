@@ -2,6 +2,8 @@ use itertools::Itertools;
 use crate::aoc_result::AoCResult;
 use std::str::FromStr;
 
+make_day!(Day03);
+
 pub fn solve_part1(input: &String) -> AoCResult {
    	let (wire1, wire2) = input.lines().next_tuple().unwrap();
 
