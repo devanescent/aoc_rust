@@ -25,16 +25,12 @@ fn check_image_corruption(input: &String, image_width: usize, image_height: usiz
     let layers = get_layers(input, image_width, image_height);
 
     // Count frequencies of digits of each layer:
-    let freqs : Vec<_> = layers
+    let freqs: Vec<_> = layers
         .iter()
         .cloned()
         .map(|layer| {
-            layer
-            .chars()
-            .fold(HashMap::new(), |mut map, c| {
-                map.entry(c)
-                    .and_modify(|frq|*frq+=1)
-                    .or_insert(1);
+            layer.chars().fold(HashMap::new(), |mut map, c| {
+                map.entry(c).and_modify(|frq| *frq += 1).or_insert(1);
                 map
             })
         })
@@ -44,7 +40,10 @@ fn check_image_corruption(input: &String, image_width: usize, image_height: usiz
     let layer_max_0 = freqs
         .iter()
         .min_by(|layer1, layer2| {
-            layer1.get(&'0').unwrap_or(&0).cmp(layer2.get(&'0').unwrap_or(&0))
+            layer1
+                .get(&'0')
+                .unwrap_or(&0)
+                .cmp(layer2.get(&'0').unwrap_or(&0))
         })
         .unwrap();
 
@@ -53,7 +52,7 @@ fn check_image_corruption(input: &String, image_width: usize, image_height: usiz
 
 pub fn solve_part2(input: &String) -> AoCResult {
     let layers = get_layers(input, 25, 6);
-    
+
     for y in 0..6 {
         let mut line = String::new();
         for x in 0..25 {

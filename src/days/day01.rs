@@ -24,16 +24,16 @@ pub fn solve_part2(input: &String) -> AoCResult {
 }
 
 fn get_fuel(mass: u64) -> u64 {
-	u64::saturating_sub(mass / 3, 2)
+    u64::saturating_sub(mass / 3, 2)
 }
 
 fn get_fuel_recursive(mass: u64) -> u64 {
-	let fuel = get_fuel(mass);
-	if fuel > 0 {
-		fuel + get_fuel_recursive(fuel)
-	} else {
-		0
-	}
+    let fuel = get_fuel(mass);
+    if fuel > 0 {
+        fuel + get_fuel_recursive(fuel)
+    } else {
+        0
+    }
 }
 
 #[cfg(test)]
