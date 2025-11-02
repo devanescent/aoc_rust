@@ -66,6 +66,25 @@ struct Instruction {
 	arg3 : Option<i64>
 }
 
+impl Instruction {
+	fn get_arg_count(&self) -> usize {
+		let mut arg_count: usize = 0;
+		if self.arg1.is_some() { arg_count += 1; }
+		if self.arg2.is_some() { arg_count += 1; }
+		if self.arg3.is_some() { arg_count += 1; }
+		arg_count
+	}
+}
+
+#[derive(PartialEq)]
+pub enum InstructionResult {
+	RUNNING,
+	WAIT_FOR_INPUT,
+	HALT,
+	EOF,
+	ERROR
+}
+
 impl IntcodeProgram {
 	// Creates a new intcode program
 	pub fn new(code: &String, input: Option<VecDeque<i64>>) -> Self {
@@ -92,16 +111,26 @@ impl IntcodeProgram {
 	}
 
 	// Runs the intcode program
-	pub fn run(&mut self) {
+	pub fn run(&mut self) -> InstructionResult {
 		self.instr_ptr = 0;
-		
-		while let Some(instr) = self.next_instruction() {
-			if instr.opcode == OpCodeType::HALT {
-				break;
-			}
+		self.run_continue()
+	}
 
-			self.apply_instruction(&instr);
-		}
+	// Continues a paused intcode program
+	pub fn run_continue(&mut self) -> InstructionResult{
+		while let Some(instr) = self.next_instruction() {
+			let instr_res: InstructionResult = self.apply_instruction(&instr);
+
+			if instr_res != InstructionResult::RUNNING {
+				if instr_res == InstructionResult::WAIT_FOR_INPUT {
+					// Reset instruction pointer so current instruction can be run again when program is continued:
+					self.instr_ptr -= instr.get_arg_count() + 1;
+				}
+				return instr_res;
+			}
+		};
+
+		InstructionResult::EOF
 	}
 
 	// Retrieve the value at the current instruction pointer and move the pointer forward:
@@ -162,35 +191,54 @@ impl IntcodeProgram {
 	}
 
 	// Applies the given instruction to the intcode program
-	fn apply_instruction(&mut self, instr: &Instruction) {
+	fn apply_instruction(&mut self, instr: &Instruction) -> InstructionResult {
 		match instr.opcode {
-			OpCodeType::ADD => self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = instr.arg1.unwrap() + instr.arg2.unwrap(),
-			OpCodeType::MULT => self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = instr.arg1.unwrap() * instr.arg2.unwrap(),
+			OpCodeType::HALT => InstructionResult::HALT,
+			OpCodeType::ADD => {
+				self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = instr.arg1.unwrap() + instr.arg2.unwrap();
+				InstructionResult::RUNNING
+			},
+			OpCodeType::MULT => {
+				self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = instr.arg1.unwrap() * instr.arg2.unwrap();
+				InstructionResult::RUNNING
+			},
 			OpCodeType::READ => {
 				let input_val = self.input.pop_front();
 				if let Some(val) = input_val {
 					self.prgm[usize::try_from(instr.arg1.unwrap()).unwrap()] = val;
+					InstructionResult::RUNNING
+				} else {
+					InstructionResult::WAIT_FOR_INPUT
 				}
 			},
 			OpCodeType::WRITE => {
 				self.output.push(instr.arg1.unwrap());
+				InstructionResult::RUNNING
 			},
-			OpCodeType::JUMP_IF_TRUE if instr.arg1.unwrap() != 0 => {
-				self.instr_ptr = usize::try_from(instr.arg2.unwrap()).unwrap();
+			OpCodeType::JUMP_IF_TRUE => {
+				if instr.arg1.unwrap() != 0 {
+					self.instr_ptr = usize::try_from(instr.arg2.unwrap()).unwrap();
+				}
+				InstructionResult::RUNNING
 			},
-			OpCodeType::JUMP_IF_FALSE if instr.arg1.unwrap() == 0 => {
-				self.instr_ptr = usize::try_from(instr.arg2.unwrap()).unwrap();
+			OpCodeType::JUMP_IF_FALSE => {
+				if instr.arg1.unwrap() == 0 {
+					self.instr_ptr = usize::try_from(instr.arg2.unwrap()).unwrap();
+				}
+				InstructionResult::RUNNING
 			},
 			OpCodeType::LESS_THAN => {
 				let output = if instr.arg1.unwrap() < instr.arg2.unwrap() { 1 } else { 0 };
 				self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = output;
+				InstructionResult::RUNNING
 			},
 			OpCodeType::EQUALS => {
 				let output = if instr.arg1.unwrap() == instr.arg2.unwrap() { 1 } else { 0 };
 				self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = output;
+				InstructionResult::RUNNING
 			},
-			_ => {}
-		};
+			_ => InstructionResult::ERROR
+		}
 	}
 
 	
