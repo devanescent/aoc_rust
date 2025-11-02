@@ -8,6 +8,8 @@ use crate::aoc_result::AoCResult;
 pub mod days;
 use crate::days::*;
 
+pub mod shared;
+
 pub fn solve(day: u8, part: u8, input: &String) -> AoCResult {
     let solver: Option<&dyn AoCDay> = match day {
 		1 => Some(&day01::Day01{}),
