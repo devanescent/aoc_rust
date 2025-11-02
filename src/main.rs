@@ -19,7 +19,7 @@ fn main() {
 
     let res = aoc_2019::solve(args.day, args.part, &input);
     match res {
-        AoCResult::Num(_) | AoCResult::Str(_) => println!("Day {:02} (part {}): {}", args.day, args.part, res),
+        AoCResult::Num(_) | AoCResult::Str(_) | AoCResult::PrintedToConsole => println!("Day {:02} (part {}): {}", args.day, args.part, res),
         _ =>  println!("Error: {}", res)
     };
 }
