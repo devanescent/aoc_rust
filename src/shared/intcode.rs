@@ -12,19 +12,51 @@ pub struct IntcodeProgram {
 #[derive(PartialEq)]
 enum OpCodeType {
 	HALT,
-	ADD,		// 01
-	MULT,		// 02
-	READ,		// 03
-	WRITE,		// 04
+	ADD,			// 01
+	MULT,			// 02
+	READ,			// 03
+	WRITE,			// 04
+	JUMP_IF_TRUE,	// 05
+	JUMP_IF_FALSE,	// 06
+	LESS_THAN,		// 07
+	EQUALS,			// 08
 
 	// Invalid / unknown op code
 	ERR
+}
+
+impl From<i64> for OpCodeType {
+	fn from(value: i64) -> Self {
+		// Last two digits:
+		match value % 100 {
+			 1 => OpCodeType::ADD,
+			 2 => OpCodeType::MULT,
+			 3 => OpCodeType::READ,
+			 4 => OpCodeType::WRITE,
+			 5 => OpCodeType::JUMP_IF_TRUE,
+			 6 => OpCodeType::JUMP_IF_FALSE,
+			 7 => OpCodeType::LESS_THAN,
+			 8 => OpCodeType::EQUALS,
+			99 => OpCodeType::HALT,
+			 _ => OpCodeType::ERR
+		}
+	}
 }
 
 #[derive(PartialEq)]
 enum ParameterMode {
 	Positional,
 	Immediate
+}
+
+impl From<i64> for ParameterMode {
+	fn from(value: i64) -> Self {
+		if value == 0 {
+			ParameterMode::Positional
+		} else {
+			ParameterMode::Immediate
+		}
+	}
 }
 
 struct Instruction {
@@ -92,12 +124,12 @@ impl IntcodeProgram {
 		let param_mode = ParameterMode::from((opcode / (100 * 10i64.pow(arg_no - 1))) % 10);
 
 		match opcode_type {
-			OpCodeType::ADD | OpCodeType::MULT if arg_no <= 2 => {
-				// IN parameter for ADD and MULT
+			OpCodeType::ADD | OpCodeType::MULT | OpCodeType::LESS_THAN | OpCodeType::EQUALS if arg_no <= 2 => {
+				// IN parameter for binary operations:
 				self.next_value(param_mode)
 			},
-			OpCodeType::ADD | OpCodeType::MULT if arg_no == 3 => {
-				// OUT parameter for ADD and MULT: adress given is always read as immediate value
+			OpCodeType::ADD | OpCodeType::MULT | OpCodeType::LESS_THAN | OpCodeType::EQUALS if arg_no == 3 => {
+				// OUT parameter for binary operations: adress given is always read as immediate value
 				self.next_value(ParameterMode::Immediate)
 			},
 			OpCodeType::READ if arg_no == 1 => {
@@ -105,8 +137,10 @@ impl IntcodeProgram {
 				self.next_value(ParameterMode::Immediate)
 			},
 			OpCodeType::WRITE if arg_no == 1 => {
-				// OUT parameter for WRITE: adress given is always read as immediate value
-				self.next_value(ParameterMode::Immediate)
+				self.next_value(param_mode)
+			},
+			OpCodeType::JUMP_IF_TRUE | OpCodeType::JUMP_IF_FALSE if arg_no <= 2 => {
+				self.next_value(param_mode)
 			},
 			_ => None
 		}
@@ -139,7 +173,21 @@ impl IntcodeProgram {
 				}
 			},
 			OpCodeType::WRITE => {
-				self.output.push(self.prgm[usize::try_from(instr.arg1.unwrap()).unwrap()]);
+				self.output.push(instr.arg1.unwrap());
+			},
+			OpCodeType::JUMP_IF_TRUE if instr.arg1.unwrap() != 0 => {
+				self.instr_ptr = usize::try_from(instr.arg2.unwrap()).unwrap();
+			},
+			OpCodeType::JUMP_IF_FALSE if instr.arg1.unwrap() == 0 => {
+				self.instr_ptr = usize::try_from(instr.arg2.unwrap()).unwrap();
+			},
+			OpCodeType::LESS_THAN => {
+				let output = if instr.arg1.unwrap() < instr.arg2.unwrap() { 1 } else { 0 };
+				self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = output;
+			},
+			OpCodeType::EQUALS => {
+				let output = if instr.arg1.unwrap() == instr.arg2.unwrap() { 1 } else { 0 };
+				self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = output;
 			},
 			_ => {}
 		};
@@ -151,29 +199,5 @@ impl IntcodeProgram {
 impl From<Vec<i64>> for IntcodeProgram {
 	fn from(value: Vec<i64>) -> Self {
 		Self { prgm: value, instr_ptr: 0, input: VecDeque::new(), output: vec![] }
-	}
-}
-
-impl From<i64> for ParameterMode {
-	fn from(value: i64) -> Self {
-		if value == 0 {
-			ParameterMode::Positional
-		} else {
-			ParameterMode::Immediate
-		}
-	}
-}
-
-impl From<i64> for OpCodeType {
-	fn from(value: i64) -> Self {
-		// Last two digits:
-		match value % 100 {
-			 1 => OpCodeType::ADD,
-			 2 => OpCodeType::MULT,
-			 3 => OpCodeType::READ,
-			 4 => OpCodeType::WRITE,
-			99 => OpCodeType::HALT,
-			 _ => OpCodeType::ERR
-		}
 	}
 }
