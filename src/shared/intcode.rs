@@ -1,19 +1,21 @@
-use std::str::FromStr;
+use std::{collections::VecDeque, str::FromStr};
 
 #[derive(Clone)]
 pub struct IntcodeProgram {
-	prgm: Vec<u64>,
+	prgm: Vec<i64>,
 	instr_ptr: usize,
 
-	input: Vec<u64>,
-	output: Vec<u64>
+	pub input: VecDeque<i64>,
+	pub output: Vec<i64>
 }
 
 #[derive(PartialEq)]
 enum OpCodeType {
 	HALT,
-	ADD,
-	MULT,
+	ADD,		// 01
+	MULT,		// 02
+	READ,		// 03
+	WRITE,		// 04
 
 	// Invalid / unknown op code
 	ERR
@@ -27,33 +29,33 @@ enum ParameterMode {
 
 struct Instruction {
 	opcode : OpCodeType,
-	arg1 : Option<u64>,
-	arg2 : Option<u64>,
-	arg3 : Option<u64>
+	arg1 : Option<i64>,
+	arg2 : Option<i64>,
+	arg3 : Option<i64>
 }
 
 impl IntcodeProgram {
 	// Creates a new intcode program
-	pub fn new(code: &String, input: Option<Vec<u64>>) -> Self {
+	pub fn new(code: &String, input: Option<VecDeque<i64>>) -> Self {
 		Self {
 			prgm: code
 				.trim_end()
 				.split(',')
-				.map(|s| u64::from_str(s).unwrap())
+				.map(|s| i64::from_str(s).unwrap())
 				.collect(),
 			instr_ptr: 0,
-			input: input.unwrap_or(vec![]),
+			input: input.unwrap_or(VecDeque::new()),
 			output: vec![],
 		}
 	}
 
 	// Reads the current value inside the intcode program at the given position
 	pub fn read(&self, index: usize) -> u64 {
-		self.prgm[index]
+		u64::try_from(self.prgm[index]).unwrap_or(0)
 	}
 
 	// Writes the value to the intcode program at the given position
-	pub fn write(&mut self, index: usize, value: u64) {
+	pub fn write(&mut self, index: usize, value: i64) {
 		self.prgm[index] = value;
 	}
 
@@ -71,7 +73,7 @@ impl IntcodeProgram {
 	}
 
 	// Retrieve the value at the current instruction pointer and move the pointer forward:
-	fn next_value(&mut self, mode: ParameterMode) -> Option<u64> {
+	fn next_value(&mut self, mode: ParameterMode) -> Option<i64> {
 		let val = self.prgm[self.instr_ptr];
 		self.instr_ptr += 1;
 
@@ -85,9 +87,9 @@ impl IntcodeProgram {
 	}
 
 	// Retrieves an argument for the given opcode, based on the parameter mode
-	fn get_argument(&mut self, opcode: u64, arg_no: u32) -> Option<u64> {
+	fn get_argument(&mut self, opcode: i64, arg_no: u32) -> Option<i64> {
 		let opcode_type = OpCodeType::from(opcode);
-		let param_mode = ParameterMode::from((opcode / (100 * 10u64.pow(arg_no - 1))) % 10);
+		let param_mode = ParameterMode::from((opcode / (100 * 10i64.pow(arg_no - 1))) % 10);
 
 		match opcode_type {
 			OpCodeType::ADD | OpCodeType::MULT if arg_no <= 2 => {
@@ -96,6 +98,14 @@ impl IntcodeProgram {
 			},
 			OpCodeType::ADD | OpCodeType::MULT if arg_no == 3 => {
 				// OUT parameter for ADD and MULT: adress given is always read as immediate value
+				self.next_value(ParameterMode::Immediate)
+			},
+			OpCodeType::READ if arg_no == 1 => {
+				// OUT parameter for READ: adress given is always read as immediate value
+				self.next_value(ParameterMode::Immediate)
+			},
+			OpCodeType::WRITE if arg_no == 1 => {
+				// OUT parameter for WRITE: adress given is always read as immediate value
 				self.next_value(ParameterMode::Immediate)
 			},
 			_ => None
@@ -122,6 +132,15 @@ impl IntcodeProgram {
 		match instr.opcode {
 			OpCodeType::ADD => self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = instr.arg1.unwrap() + instr.arg2.unwrap(),
 			OpCodeType::MULT => self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = instr.arg1.unwrap() * instr.arg2.unwrap(),
+			OpCodeType::READ => {
+				let input_val = self.input.pop_front();
+				if let Some(val) = input_val {
+					self.prgm[usize::try_from(instr.arg1.unwrap()).unwrap()] = val;
+				}
+			},
+			OpCodeType::WRITE => {
+				self.output.push(self.prgm[usize::try_from(instr.arg1.unwrap()).unwrap()]);
+			},
 			_ => {}
 		};
 	}
@@ -129,14 +148,14 @@ impl IntcodeProgram {
 	
 }
 
-impl From<Vec<u64>> for IntcodeProgram {
-	fn from(value: Vec<u64>) -> Self {
-		Self { prgm: value, instr_ptr: 0, input: vec![], output: vec![] }
+impl From<Vec<i64>> for IntcodeProgram {
+	fn from(value: Vec<i64>) -> Self {
+		Self { prgm: value, instr_ptr: 0, input: VecDeque::new(), output: vec![] }
 	}
 }
 
-impl From<u64> for ParameterMode {
-	fn from(value: u64) -> Self {
+impl From<i64> for ParameterMode {
+	fn from(value: i64) -> Self {
 		if value == 0 {
 			ParameterMode::Positional
 		} else {
@@ -145,12 +164,14 @@ impl From<u64> for ParameterMode {
 	}
 }
 
-impl From<u64> for OpCodeType {
-	fn from(value: u64) -> Self {
+impl From<i64> for OpCodeType {
+	fn from(value: i64) -> Self {
 		// Last two digits:
 		match value % 100 {
 			 1 => OpCodeType::ADD,
 			 2 => OpCodeType::MULT,
+			 3 => OpCodeType::READ,
+			 4 => OpCodeType::WRITE,
 			99 => OpCodeType::HALT,
 			 _ => OpCodeType::ERR
 		}

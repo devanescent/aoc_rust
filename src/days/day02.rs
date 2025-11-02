@@ -1,5 +1,4 @@
 use crate::aoc_result::AoCResult;
-use std::str::FromStr;
 use crate::shared::intcode::IntcodeProgram;
 
 make_day!(Day02);
@@ -28,7 +27,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
 
 			prgm_cpy.run();
 			if prgm_cpy.read(0) == 19690720 {
-				return AoCResult::Num(100 * noun + verb);
+				return AoCResult::Num(u64::try_from(100 * noun + verb).unwrap());
 			}
 		}
 	}
