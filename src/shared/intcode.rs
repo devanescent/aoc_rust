@@ -1,12 +1,15 @@
-use std::{collections::VecDeque, str::FromStr};
+use std::{collections::{HashMap, VecDeque}, str::FromStr};
 
 #[derive(Clone)]
 pub struct IntcodeProgram {
     prgm: Vec<i64>,
     instr_ptr: usize,
+	relative_base_offset: i64,
 
     pub input: VecDeque<i64>,
     pub output: Vec<i64>,
+
+	extended_memory: HashMap<usize, i64>,
 }
 
 #[derive(PartialEq)]
@@ -21,6 +24,7 @@ enum OpCodeType {
     JUMP_IF_FALSE, // 06
     LESS_THAN,     // 07
     EQUALS,        // 08
+	MOVE_REL_OFFS, // 09
 
     // Invalid / unknown op code
     ERR,
@@ -38,6 +42,7 @@ impl From<i64> for OpCodeType {
             6 => OpCodeType::JUMP_IF_FALSE,
             7 => OpCodeType::LESS_THAN,
             8 => OpCodeType::EQUALS,
+			9 => OpCodeType::MOVE_REL_OFFS,
             99 => OpCodeType::HALT,
             _ => OpCodeType::ERR,
         }
@@ -48,15 +53,18 @@ impl From<i64> for OpCodeType {
 enum ParameterMode {
     Positional,
     Immediate,
+	Relative,
 }
 
 impl From<i64> for ParameterMode {
     fn from(value: i64) -> Self {
         if value == 0 {
             ParameterMode::Positional
-        } else {
+        } else if value == 1 {
             ParameterMode::Immediate
-        }
+        } else {
+			ParameterMode::Relative
+		}
     }
 }
 
@@ -97,19 +105,30 @@ impl IntcodeProgram {
                 .map(|s| i64::from_str(s).unwrap())
                 .collect(),
             instr_ptr: 0,
+			relative_base_offset: 0,
             input: input.unwrap_or(VecDeque::new()),
             output: vec![],
+			extended_memory: HashMap::new(),
         }
     }
 
     // Reads the current value inside the intcode program at the given position
-    pub fn read(&self, index: usize) -> u64 {
-        u64::try_from(self.prgm[index]).unwrap_or(0)
+    pub fn read(&self, index: usize) -> i64 {
+        *self.prgm.get(index)
+			.unwrap_or_else(|| {
+				// If out of bound from code, try extended memory:
+				self.extended_memory.get(&index).unwrap_or(&0)
+			})
     }
 
     // Writes the value to the intcode program at the given position
     pub fn write(&mut self, index: usize, value: i64) {
-        self.prgm[index] = value;
+		if index < self.prgm.len() {
+			self.prgm[index] = value;
+		} else {
+			// If out of bound from code, try extended memory:
+			self.extended_memory.entry(index).insert_entry(value);
+		}
     }
 
     // Runs the intcode program
@@ -137,13 +156,15 @@ impl IntcodeProgram {
 
     // Retrieve the value at the current instruction pointer and move the pointer forward:
     fn next_value(&mut self, mode: ParameterMode) -> Option<i64> {
-        let val = self.prgm[self.instr_ptr];
+        let val = self.read(self.instr_ptr);
         self.instr_ptr += 1;
 
         if mode == ParameterMode::Immediate {
             Some(val)
         } else if mode == ParameterMode::Positional {
-            Some(self.prgm[usize::try_from(val).unwrap()])
+            Some(self.read(usize::try_from(val).unwrap()))
+        } else if mode == ParameterMode::Relative {
+            Some(self.read(usize::try_from(val + self.relative_base_offset).unwrap()))
         } else {
             None
         }
@@ -160,15 +181,30 @@ impl IntcodeProgram {
                 self.next_value(param_mode)
             }
             OpCodeType::ADD | OpCodeType::MULT | OpCodeType::LESS_THAN | OpCodeType::EQUALS if arg_no == 3 => {
-                // OUT parameter for binary operations: adress given is always read as immediate value
-                self.next_value(ParameterMode::Immediate)
+                // adress given is always read as immediate value, but the resulting position depends on parameter mode
+                let address = self.next_value(ParameterMode::Immediate);
+				if let Some(addr_val) = address && param_mode == ParameterMode::Relative {
+					Some(addr_val + self.relative_base_offset)
+				} else {
+					address
+				}
             }
             OpCodeType::READ if arg_no == 1 => {
-                // OUT parameter for READ: adress given is always read as immediate value
-                self.next_value(ParameterMode::Immediate)
+                // adress given is always read as immediate value, but the resulting position depends on parameter mode
+                let address = self.next_value(ParameterMode::Immediate);
+				if let Some(addr_val) = address && param_mode == ParameterMode::Relative {
+					Some(addr_val + self.relative_base_offset)
+				} else {
+					address
+				}
             }
-            OpCodeType::WRITE if arg_no == 1 => self.next_value(param_mode),
+            OpCodeType::WRITE if arg_no == 1 => {
+				self.next_value(param_mode)
+			}
             OpCodeType::JUMP_IF_TRUE | OpCodeType::JUMP_IF_FALSE if arg_no <= 2 => {
+                self.next_value(param_mode)
+            }
+			OpCodeType::MOVE_REL_OFFS if arg_no == 1 => {
                 self.next_value(param_mode)
             }
             _ => None,
@@ -200,19 +236,17 @@ impl IntcodeProgram {
         match instr.opcode {
             OpCodeType::HALT => InstructionResult::HALT,
             OpCodeType::ADD => {
-                self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] =
-                    instr.arg1.unwrap() + instr.arg2.unwrap();
+                self.write(usize::try_from(instr.arg3.unwrap()).unwrap(), instr.arg1.unwrap() + instr.arg2.unwrap());
                 InstructionResult::RUNNING
             }
             OpCodeType::MULT => {
-                self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] =
-                    instr.arg1.unwrap() * instr.arg2.unwrap();
+                self.write(usize::try_from(instr.arg3.unwrap()).unwrap(), instr.arg1.unwrap() * instr.arg2.unwrap());
                 InstructionResult::RUNNING
             }
             OpCodeType::READ => {
                 let input_val = self.input.pop_front();
                 if let Some(val) = input_val {
-                    self.prgm[usize::try_from(instr.arg1.unwrap()).unwrap()] = val;
+                    self.write(usize::try_from(instr.arg1.unwrap()).unwrap(), val);
                     InstructionResult::RUNNING
                 } else {
                     InstructionResult::WAIT_FOR_INPUT
@@ -236,14 +270,18 @@ impl IntcodeProgram {
             }
             OpCodeType::LESS_THAN => {
 				let output = if instr.arg1.unwrap() < instr.arg2.unwrap() { 1 } else { 0 };
-                self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = output;
+                self.write(usize::try_from(instr.arg3.unwrap()).unwrap(), output);
                 InstructionResult::RUNNING
             }
             OpCodeType::EQUALS => {
 				let output = if instr.arg1.unwrap() == instr.arg2.unwrap() { 1 } else { 0 };
-                self.prgm[usize::try_from(instr.arg3.unwrap()).unwrap()] = output;
+                self.write(usize::try_from(instr.arg3.unwrap()).unwrap(), output);
                 InstructionResult::RUNNING
             }
+			OpCodeType::MOVE_REL_OFFS => {
+				self.relative_base_offset += instr.arg1.unwrap();
+				InstructionResult::RUNNING
+			}
             _ => InstructionResult::ERROR,
         }
     }
@@ -254,8 +292,10 @@ impl From<Vec<i64>> for IntcodeProgram {
         Self {
             prgm: value,
             instr_ptr: 0,
+			relative_base_offset: 0,
             input: VecDeque::new(),
             output: vec![],
+			extended_memory: HashMap::new(),
         }
     }
 }

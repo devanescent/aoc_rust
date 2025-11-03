@@ -11,7 +11,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
     prgm.write(2, 2);
     prgm.run();
 
-    AoCResult::Num(prgm.read(0))
+    AoCResult::Num(u64::try_from(prgm.read(0)).unwrap())
 }
 
 pub fn solve_part2(input: &String) -> AoCResult {
