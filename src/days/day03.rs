@@ -1,6 +1,7 @@
 use crate::aoc_result::AoCResult;
 use itertools::Itertools;
 use std::str::FromStr;
+use crate::shared::geometry::Point;
 
 make_day!(Day03);
 
@@ -65,19 +66,6 @@ pub fn solve_part2(input: &String) -> AoCResult {
         .unwrap();
 
     AoCResult::Num(u64::try_from(smallest_dist).unwrap())
-}
-
-#[derive(Copy, Clone, Debug)]
-struct Point {
-    x: i64,
-    y: i64,
-}
-
-impl Point {
-    fn steps_to(&self, other: &Point) -> u64 {
-		u64::try_from((other.x - self.x).abs()).unwrap() + 
-		u64::try_from((other.y - self.y).abs()).unwrap()
-    }
 }
 
 #[derive(Debug)]
