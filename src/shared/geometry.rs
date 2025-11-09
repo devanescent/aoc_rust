@@ -5,6 +5,10 @@ pub struct Point {
 }
 
 impl Point {
+    pub fn new(x: i64, y: i64) -> Self {
+        Point { x, y }
+    }
+
     pub fn steps_to(&self, other: &Point) -> u64 {
         u64::try_from((other.x - self.x).abs()).unwrap() + 
         u64::try_from((other.y - self.y).abs()).unwrap()
@@ -16,6 +20,10 @@ impl Point {
 
     pub fn add(&self, other: &Point) -> Point {
         Point { x: self.x + other.x, y: self.y + other.y }
+    }
+
+    pub fn move_by(&self, x: i64, y: i64) -> Point {
+        Point { x: self.x + x, y: self.y + y }
     }
 }
 
