@@ -1,7 +1,7 @@
 use crate::aoc_result::AoCResult;
+use crate::shared::geometry::Point;
 use itertools::Itertools;
 use std::str::FromStr;
-use crate::shared::geometry::Point;
 
 make_day!(Day03);
 

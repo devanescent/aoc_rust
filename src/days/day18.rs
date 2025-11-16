@@ -1,6 +1,9 @@
-use std::{collections::{HashMap, VecDeque}, ops::Index};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
+use std::{
+    collections::{HashMap, VecDeque},
+    ops::Index,
+};
 
 use itertools::Itertools;
 
@@ -10,35 +13,38 @@ make_day!(Day18);
 
 pub fn solve_part1(input: &String) -> AoCResult {
     // All keys that can be collected in the maze:
-    let all_keys = input.chars().fold(0u32, |acc, c| {
-        match c {
-            'a'..='z' => acc | 1u32 << (c as u8) - ('a' as u8),
-            _ => acc
-        }
+    let all_keys = input.chars().fold(0u32, |acc, c| match c {
+        'a'..='z' => acc | 1u32 << (c as u8) - ('a' as u8),
+        _ => acc,
     });
-    
+
     // Parse the maze:
-    let maze= Maze::new(input);
+    let maze = Maze::new(input);
     let start = maze.find('@').unwrap();
 
     // Explore maze via BFS
     let mut bfs_queue = VecDeque::<(MazeState, u64)>::new();
-    bfs_queue.push_back((MazeState { pos: start, keys: 0 }, 0));
+    bfs_queue.push_back((
+        MazeState {
+            pos: start,
+            keys: 0,
+        },
+        0,
+    ));
 
     // Check all possible directions at each locations to continue exploration:
     let nesw = vec![
         Point::new(0, -1),
         Point::new(1, 0),
         Point::new(0, 1),
-        Point::new(-1, 0)
-    ];    
+        Point::new(-1, 0),
+    ];
 
     // Locations visited with keys collected at this point and the distance travelled to reach this state:
     let mut visited = HashMap::<MazeState, u64>::new();
     let mut dist_for_all_keys = 0;
 
     while !bfs_queue.is_empty() {
-
         let (cur_state, dist) = bfs_queue.pop_front().unwrap();
 
         // First time all keys are collected stop the search:
@@ -71,16 +77,16 @@ pub fn solve_part1(input: &String) -> AoCResult {
                     // Wall:
                     continue;
                 }
-                '.' | '@' => {
-                    
-                }
-                _ => unreachable!()
+                '.' | '@' => {}
+                _ => unreachable!(),
             }
 
-            
-            let next_state = MazeState { pos: next_pos, keys: next_keys };
+            let next_state = MazeState {
+                pos: next_pos,
+                keys: next_keys,
+            };
             let next_dist = dist + 1;
-            
+
             if let Some(prev_dist) = visited.get_mut(&next_state) {
                 if *prev_dist <= next_dist {
                     // Reached this position already in a better state
@@ -102,14 +108,12 @@ pub fn solve_part1(input: &String) -> AoCResult {
 }
 
 pub fn solve_part2(input: &String) -> AoCResult {
-    let all_keys = input.chars().fold(0u32, |acc, c| {
-        match c {
-            'a'..='z' => acc | 1u32 << (c as u8) - ('a' as u8),
-            _ => acc
-        }
+    let all_keys = input.chars().fold(0u32, |acc, c| match c {
+        'a'..='z' => acc | 1u32 << (c as u8) - ('a' as u8),
+        _ => acc,
     });
 
-    let maze: Maze<'_>= Maze::new(input);
+    let maze: Maze<'_> = Maze::new(input);
     let start = maze.find('@').unwrap();
 
     // Pre-calculate all distances between keys. Maze will be processed by hopping from key to key.
@@ -132,9 +136,15 @@ pub fn solve_part2(input: &String) -> AoCResult {
     let maze_width = maze.width() + 2; // include \r\n linebreaks in original input into length:
     let start_index = (maze_width * (start.y as usize)) + (start.x as usize);
     let mut mod_input = input.clone();
-    mod_input.replace_range((start_index - maze_width - 1)..=(start_index - maze_width + 1), "@#@");
+    mod_input.replace_range(
+        (start_index - maze_width - 1)..=(start_index - maze_width + 1),
+        "@#@",
+    );
     mod_input.replace_range((start_index - 1)..=(start_index + 1), "###");
-    mod_input.replace_range((start_index + maze_width - 1)..=(start_index + maze_width + 1), "@#@");
+    mod_input.replace_range(
+        (start_index + maze_width - 1)..=(start_index + maze_width + 1),
+        "@#@",
+    );
 
     // Overwrite maze with new input:
     let maze = Maze::new(&mod_input);
@@ -147,7 +157,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
         Vec::<char>::new(),
         Vec::<char>::new(),
         Vec::<char>::new(),
-        Vec::<char>::new()
+        Vec::<char>::new(),
     ];
 
     for key in 'a'..='z' {
@@ -174,14 +184,17 @@ pub fn solve_part2(input: &String) -> AoCResult {
 
     // Explore maze via BFS
     let mut priority_queue = BinaryHeap::new();
-    priority_queue.push(QueueState2 { last_key: ['@', '@', '@', '@'], keys: 0, total_dist: 0 });
+    priority_queue.push(QueueState2 {
+        last_key: ['@', '@', '@', '@'],
+        keys: 0,
+        total_dist: 0,
+    });
 
     // Locations visited with keys collected at this point and the distance travelled to reach this state:
     let mut visited = HashMap::<MazeState2, u64>::new();
     let mut dist_for_all_keys = 0;
 
     while !priority_queue.is_empty() {
-
         let cur_state = priority_queue.pop().unwrap();
 
         // First time all keys are collected stop the search:
@@ -196,7 +209,8 @@ pub fn solve_part2(input: &String) -> AoCResult {
 
             // Try keys that have not been collected yet and can be reached with the currently collected keys:
             for next_key in keys_by_robot[robot].iter().filter(|k| {
-                let key_has_not_been_collected = cur_state.keys & (1u32 << ((**k as u8) - ('a' as u8))) == 0;
+                let key_has_not_been_collected =
+                    cur_state.keys & (1u32 << ((**k as u8) - ('a' as u8))) == 0;
                 let blocked_by_doors = key_distances.get(&last_key).unwrap().get(k).unwrap().0;
                 let can_unlock_all_doors = (blocked_by_doors & cur_state.keys) == blocked_by_doors;
                 key_has_not_been_collected && can_unlock_all_doors
@@ -204,9 +218,14 @@ pub fn solve_part2(input: &String) -> AoCResult {
                 // New state:
                 let mut next_state = cur_state.clone();
                 next_state.keys = cur_state.keys | (1u32 << ((*next_key as u8) - ('a' as u8)));
-                
+
                 // Add distance to the next key to total distance:
-                let steps_to_key = key_distances.get(&next_state.last_key[robot]).unwrap().get(next_key).unwrap().1;
+                let steps_to_key = key_distances
+                    .get(&next_state.last_key[robot])
+                    .unwrap()
+                    .get(next_key)
+                    .unwrap()
+                    .1;
                 let total_dist = cur_state.total_dist + steps_to_key;
                 next_state.total_dist = total_dist;
 
@@ -236,17 +255,13 @@ pub fn solve_part2(input: &String) -> AoCResult {
 }
 
 pub struct Maze<'a> {
-    cells: Vec<&'a str>,  // store as bytes for efficiency
+    cells: Vec<&'a str>, // store as bytes for efficiency
 }
 
 impl<'a> Maze<'a> {
     fn new(input: &'a String) -> Self {
         Maze {
-            cells: input
-                .trim_end()
-                .lines()
-                .map(|l| l.trim_end())
-                .collect_vec()
+            cells: input.trim_end().lines().map(|l| l.trim_end()).collect_vec(),
         }
     }
 
@@ -266,15 +281,15 @@ impl<'a> Maze<'a> {
     }
 
     // Find shortest distances between all keys
-    fn get_key_distances(&self) -> HashMap::<char, HashMap::<char, (u32, u64)>> {
+    fn get_key_distances(&self) -> HashMap<char, HashMap<char, (u32, u64)>> {
         // Key-to-key positions, with doors (u32) and distance (u64) between them
-        let mut key_distances = HashMap::<char, HashMap::<char, (u32, u64)>>::new();
+        let mut key_distances = HashMap::<char, HashMap<char, (u32, u64)>>::new();
 
         let nesw = vec![
             Point::new(0, -1),
             Point::new(1, 0),
             Point::new(0, 1),
-            Point::new(-1, 0)
+            Point::new(-1, 0),
         ];
 
         let point_of_interest = ['@', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
@@ -290,9 +305,15 @@ impl<'a> Maze<'a> {
             let mut bfs = VecDeque::<(MazeState, u64)>::new();
 
             // Insert distance to self as 0:
-            key_distances.insert(poi, HashMap::from([ (poi, (0, 0)) ]));
+            key_distances.insert(poi, HashMap::from([(poi, (0, 0))]));
 
-            bfs.push_back((MazeState { pos: poi_pos.unwrap(), keys: 0 }, 0));
+            bfs.push_back((
+                MazeState {
+                    pos: poi_pos.unwrap(),
+                    keys: 0,
+                },
+                0,
+            ));
             'bfs_loop: while !bfs.is_empty() {
                 let (cur_state, dist) = bfs.pop_front().unwrap();
                 let next_dist = dist + 1;
@@ -304,7 +325,7 @@ impl<'a> Maze<'a> {
                     let tile = self[&next_pos] as char;
                     match tile {
                         'a'..='z' | '@' => {
-                            let dist_from_entry =  key_distances.get_mut(&poi);
+                            let dist_from_entry = key_distances.get_mut(&poi);
                             if let Some(dist_from_entry) = dist_from_entry {
                                 if dist_from_entry.get(&tile).is_some() {
                                     // Distance already found
@@ -314,12 +335,17 @@ impl<'a> Maze<'a> {
                                     dist_from_entry.insert(tile, (next_doors, next_dist));
 
                                     // Also insert distance the other way around:
-                                    key_distances.entry(tile)
-                                        .and_modify(|e: &mut HashMap<char, (u32, u64)>| { e.entry(poi).or_insert((next_doors, next_dist)); })
-                                        .or_insert(HashMap::from([ (poi, (next_doors, next_dist)) ]));
+                                    key_distances
+                                        .entry(tile)
+                                        .and_modify(|e: &mut HashMap<char, (u32, u64)>| {
+                                            e.entry(poi).or_insert((next_doors, next_dist));
+                                        })
+                                        .or_insert(HashMap::from([(poi, (next_doors, next_dist))]));
 
                                     // End if all keys have been found:
-                                    if key_distances.get(&poi).unwrap().len() == point_of_interest.len() {
+                                    if key_distances.get(&poi).unwrap().len()
+                                        == point_of_interest.len()
+                                    {
                                         break 'bfs_loop;
                                     }
                                 }
@@ -334,16 +360,15 @@ impl<'a> Maze<'a> {
                             // Wall:
                             continue;
                         }
-                        '.' => {
-                            
-                        }
-                        _ => unreachable!()
+                        '.' => {}
+                        _ => unreachable!(),
                     }
 
-                    
-                    let next_state = MazeState { pos: next_pos, keys: next_doors };
-                    
-                    
+                    let next_state = MazeState {
+                        pos: next_pos,
+                        keys: next_doors,
+                    };
+
                     if let Some(prev_dist) = vis.get_mut(&next_state) {
                         if *prev_dist <= next_dist {
                             // Reached this position already in a better state
@@ -358,7 +383,7 @@ impl<'a> Maze<'a> {
                     }
 
                     bfs.push_back((next_state, next_dist));
-                }            
+                }
             }
         }
 
@@ -386,8 +411,8 @@ impl<'a> Index<&Point> for Maze<'a> {
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 struct MazeState {
-    pos: Point,     // position inside the maze
-    keys: u32,      // bit-flags for keys
+    pos: Point, // position inside the maze
+    keys: u32,  // bit-flags for keys
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -400,12 +425,15 @@ struct MazeState2 {
 struct QueueState2 {
     last_key: [char; 4],
     keys: u32,
-    total_dist: u64
+    total_dist: u64,
 }
 
 impl QueueState2 {
     fn to_maze_state(&self) -> MazeState2 {
-        MazeState2 { last_key: self.last_key, keys: self.keys }
+        MazeState2 {
+            last_key: self.last_key,
+            keys: self.keys,
+        }
     }
 }
 
@@ -414,7 +442,9 @@ impl Ord for QueueState2 {
         // Notice ordering of comparison is flipped (other.cmp(self), because BinaryHeap is a MaxHeap
         // In case of a tie we compare keys - this step is necessary
         // to make implementations of `PartialEq` and `Ord` consistent.
-        other.total_dist.cmp(&self.total_dist)
+        other
+            .total_dist
+            .cmp(&self.total_dist)
             .then_with(|| self.keys.cmp(&other.keys))
     }
 }

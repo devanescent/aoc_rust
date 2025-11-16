@@ -9,16 +9,18 @@ pub fn solve_part1(input: &String) -> AoCResult {
     let mut prgm = IntcodeProgram::new(input, None);
     prgm.run();
 
-    let tiles : Vec<_> = prgm.output.chunks(3).map(|chunk| {
-        Tile {
+    let tiles: Vec<_> = prgm
+        .output
+        .chunks(3)
+        .map(|chunk| Tile {
             x: chunk[0],
             y: chunk[1],
-            tile_id: TileId::from(chunk[2] as u64)
-        }
-    })
-    .collect();
+            tile_id: TileId::from(chunk[2] as u64),
+        })
+        .collect();
 
-    let block_tiles = tiles.iter()
+    let block_tiles = tiles
+        .iter()
         .filter(|tile| tile.tile_id == TileId::Block)
         .count();
 
@@ -38,14 +40,19 @@ pub fn solve_part2(input: &String) -> AoCResult {
     let mut paddle_x = 0i64;
 
     while prgm_state == InstructionResult::WAIT_FOR_INPUT {
-        let tiles : Vec<_> = prgm.output.chunks(3).map(|chunk| {
-            Tile {
+        let tiles: Vec<_> = prgm
+            .output
+            .chunks(3)
+            .map(|chunk| Tile {
                 x: chunk[0],
                 y: chunk[1],
-                tile_id: if chunk[0] >= 0 { TileId::from(chunk[2] as u64) } else { TileId::Score(chunk[2] as u64) }
-            }
-        })
-        .collect();
+                tile_id: if chunk[0] >= 0 {
+                    TileId::from(chunk[2] as u64)
+                } else {
+                    TileId::Score(chunk[2] as u64)
+                },
+            })
+            .collect();
         prgm.output.clear();
 
         if let Some(old_screen) = screen.as_mut() {
@@ -56,8 +63,14 @@ pub fn solve_part2(input: &String) -> AoCResult {
         }
 
         // From tiles: get info where paddle and ball are:
-        ball_x = tiles.iter().find(|t| t.tile_id == TileId::Ball).map_or(ball_x, |t| t.x);
-        paddle_x = tiles.iter().find(|t| t.tile_id == TileId::Paddle).map_or(paddle_x, |t| t.x);
+        ball_x = tiles
+            .iter()
+            .find(|t| t.tile_id == TileId::Ball)
+            .map_or(ball_x, |t| t.x);
+        paddle_x = tiles
+            .iter()
+            .find(|t| t.tile_id == TileId::Paddle)
+            .map_or(paddle_x, |t| t.x);
 
         if ball_x > paddle_x {
             prgm.input.push_back(1);
@@ -73,17 +86,21 @@ pub fn solve_part2(input: &String) -> AoCResult {
         prgm_state = prgm.run_continue();
     }
 
-
     // Last update:
-    let tiles : Vec<_> = prgm.output.chunks(3).map(|chunk| {
-            Tile {
-                x: chunk[0],
-                y: chunk[1],
-                tile_id: if chunk[0] >= 0 { TileId::from(chunk[2] as u64) } else { TileId::Score(chunk[2] as u64) }
-            }
+    let tiles: Vec<_> = prgm
+        .output
+        .chunks(3)
+        .map(|chunk| Tile {
+            x: chunk[0],
+            y: chunk[1],
+            tile_id: if chunk[0] >= 0 {
+                TileId::from(chunk[2] as u64)
+            } else {
+                TileId::Score(chunk[2] as u64)
+            },
         })
         .collect();
-    
+
     screen.as_mut().unwrap().update(&tiles);
     AoCResult::Num(screen.unwrap().score)
 }
@@ -95,7 +112,7 @@ enum TileId {
     Block,
     Paddle,
     Ball,
-    Score(u64)
+    Score(u64),
 }
 
 impl From<u64> for TileId {
@@ -105,20 +122,20 @@ impl From<u64> for TileId {
             2 => TileId::Block,
             3 => TileId::Paddle,
             4 => TileId::Ball,
-            _ => TileId::Empty
+            _ => TileId::Empty,
         }
     }
 }
 struct Tile {
     pub x: i64,
     pub y: i64,
-    pub tile_id: TileId
+    pub tile_id: TileId,
 }
 
 struct Screen {
     width: i64,
     score: u64,
-    drawing_area: Vec<char>
+    drawing_area: Vec<char>,
 }
 
 impl Screen {
@@ -130,10 +147,18 @@ impl Screen {
         for t in tiles.iter() {
             if t.x == -1 {
                 // score
-                score = if let TileId::Score(s) = t.tile_id { s } else { 0 };
+                score = if let TileId::Score(s) = t.tile_id {
+                    s
+                } else {
+                    0
+                };
             } else {
-                if t.x >= width { width = t.x + 1; }
-                if t.y >= height { height = t.y + 1; }
+                if t.x >= width {
+                    width = t.x + 1;
+                }
+                if t.y >= height {
+                    height = t.y + 1;
+                }
             }
         }
 
@@ -145,19 +170,19 @@ impl Screen {
                 TileId::Block => 'X',
                 TileId::Ball => 'o',
                 TileId::Paddle => '=',
-                _ => ' '
+                _ => ' ',
             }
         }
 
         Screen {
             width: width,
             score: score,
-            drawing_area: drawing
+            drawing_area: drawing,
         }
     }
 
     fn update(&mut self, tiles: &Vec<Tile>) {
-        for t in tiles.iter(){
+        for t in tiles.iter() {
             if let TileId::Score(s) = t.tile_id {
                 self.score = s;
             } else {
@@ -166,7 +191,7 @@ impl Screen {
                     TileId::Block => 'X',
                     TileId::Ball => 'o',
                     TileId::Paddle => '=',
-                    _ => ' '
+                    _ => ' ',
                 }
             }
         }

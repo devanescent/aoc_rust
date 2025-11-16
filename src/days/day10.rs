@@ -12,13 +12,13 @@ pub fn solve_part1(input: &String) -> AoCResult {
     let asteroids = get_asteroids(input);
     let all_connections = get_all_connections(&asteroids);
 
-    AoCResult::Num(*all_connections.iter().map(|(_, d)| { d }).max().unwrap())
+    AoCResult::Num(*all_connections.iter().map(|(_, d)| d).max().unwrap())
 }
 
 pub fn solve_part2(input: &String) -> AoCResult {
     let asteroids = get_asteroids(input);
     let all_connections = get_all_connections(&asteroids);
-    
+
     // Point with maximum connections:
     let p_max_conn = all_connections.iter().max_by(|(_, con1), (_, con2)| { con1.cmp(con2)}).unwrap().0;
 
@@ -50,7 +50,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
                 unreachable!()
             }
         })
-        .map(|(p, angle,quad,d)| {
+        .map(|(p, angle, quad, d)| {
             let normalized_angle = angle * 2f64 / PI; // normalized = [0,1)
             let full_angle = normalized_angle + f64::from(quad); // add quad number
             let x = (full_angle * 1000f64) as u64; // convert to integer value for easier handling
@@ -58,7 +58,6 @@ pub fn solve_part2(input: &String) -> AoCResult {
             // Concrete value for x is not relevant, but it will used to group elements
             // that are at the same angle from the monitoring station
             (p, x, d)
-            
         })
         // Sort targets at same angle by distance:
         .sorted_by_key(|(_, _, d)| *d)
@@ -67,8 +66,9 @@ pub fn solve_part2(input: &String) -> AoCResult {
     // Group asteroids by angle:
     let mut asteroid_by_angle = HashMap::<u64, Vec<Point>>::new();
     for (p, angle, _) in rotation_list.iter() {
-        asteroid_by_angle.entry(*angle)
-            .and_modify(|x| x.push(*p) )
+        asteroid_by_angle
+            .entry(*angle)
+            .and_modify(|x| x.push(*p))
             .or_insert(vec![*p]);
     }
 
@@ -87,23 +87,22 @@ pub fn solve_part2(input: &String) -> AoCResult {
     AoCResult::Num(u64::try_from(asteroid_200th.x * 100 + asteroid_200th.y).unwrap())
 }
 
-fn get_asteroids(input: &String) -> Vec::<Point> {
+fn get_asteroids(input: &String) -> Vec<Point> {
     input
         .trim_end()
         .lines()
         .enumerate()
         // Rows:
         .map(|(y, row)| {
-            row
-            .chars()
-            .enumerate()
-            // Cols:
-            .map(move|(x, c)| { (c, Point::from((x,y))) })
-            .collect::<Vec<_>>()
+            row.chars()
+                .enumerate()
+                // Cols:
+                .map(move |(x, c)| (c, Point::from((x, y))))
+                .collect::<Vec<_>>()
         })
         .flatten()
         .filter(|(c, _)| c == &'#')
-        .map(|(_,p)| p)
+        .map(|(_, p)| p)
         .collect()
 }
 
@@ -127,7 +126,7 @@ fn reduce(v: &Point) -> Point {
     return *v;
 }
 
-fn get_all_connections(asteroids: &Vec::<Point>) -> Vec::<(Point, u64)> {
+fn get_all_connections(asteroids: &Vec<Point>) -> Vec<(Point, u64)> {
     let mut all_connections = Vec::<(Point, u64)>::new();
     for a1 in asteroids.iter() {
         let mut connections = 0u64;
@@ -141,7 +140,6 @@ fn get_all_connections(asteroids: &Vec::<Point>) -> Vec::<(Point, u64)> {
                 let mut d = dist_step;
 
                 while d != actual_dist {
-
                     if asteroids.iter().find(|p| **p == a1.add(&d)).is_some() {
                         // Path is blocked
                         continue 'inner;
@@ -156,7 +154,6 @@ fn get_all_connections(asteroids: &Vec::<Point>) -> Vec::<(Point, u64)> {
         all_connections.push((a1.clone(), connections));
     }
     all_connections
-
 }
 
 #[cfg(test)]

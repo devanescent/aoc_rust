@@ -84,7 +84,9 @@ fn parse_moons(input: &String) -> Vec<Moon> {
                 x: caps[1].parse::<i64>().unwrap(),
                 y: caps[2].parse::<i64>().unwrap(),
                 z: caps[3].parse::<i64>().unwrap(),
-                vx: 0, vy: 0, vz: 0
+                vx: 0,
+                vy: 0,
+                vz: 0,
             }
         })
         .collect()
@@ -95,7 +97,7 @@ enum SimulationMode {
     OnlyX,
     OnlyY,
     OnlyZ,
-    All
+    All,
 }
 
 fn run_simulation(moons: &mut Vec<Moon>, cycles: usize, mode: SimulationMode) -> u64 {
@@ -158,7 +160,7 @@ fn get_cycle_times(moons: &mut Vec<Moon>) -> u64 {
         cycle_z += 1;
     }
 
-    math::lcm(math::lcm(cycle_x, cycle_y),cycle_z)
+    math::lcm(math::lcm(cycle_x, cycle_y), cycle_z)
 }
 
 #[cfg(test)]

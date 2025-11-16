@@ -10,46 +10,51 @@ pub fn solve_part1(input: &String) -> AoCResult {
         .chars()
         .map(|c| c.to_digit(10).unwrap() as u8)
         .collect_vec();
-    
+
     let base_pattern: Vec<i32> = vec![0, 1, 0, -1];
 
     // Calculate 100 phases:
     for _ in 0..100 {
-        data = (0..data.len()).map(|out_index| {
-            // Calculate next value for each output index:
-            let mut next_value = 0i32;
-            
-            // Skip first element in pattern:
-            let mut skip_first = true;
-            
-            // Process all data:
-            let mut data_iter = data.iter();
-            'data_loop: loop {
-                for p in base_pattern.iter() {
-                    // Repeat each value of the pattern depending on the output index:
-                    for _ in 0..(out_index + 1) {
-                        if skip_first {
-                            skip_first = false;
-                            continue;
-                        }
+        data = (0..data.len())
+            .map(|out_index| {
+                // Calculate next value for each output index:
+                let mut next_value = 0i32;
 
-                        if let Some(x) = data_iter.next() {
-                            next_value += (*x as i32) * p;
-                        } else {
-                            break 'data_loop;
+                // Skip first element in pattern:
+                let mut skip_first = true;
+
+                // Process all data:
+                let mut data_iter = data.iter();
+                'data_loop: loop {
+                    for p in base_pattern.iter() {
+                        // Repeat each value of the pattern depending on the output index:
+                        for _ in 0..(out_index + 1) {
+                            if skip_first {
+                                skip_first = false;
+                                continue;
+                            }
+
+                            if let Some(x) = data_iter.next() {
+                                next_value += (*x as i32) * p;
+                            } else {
+                                break 'data_loop;
+                            }
                         }
                     }
                 }
-            }
 
-            // Only last digit is kept:
-            (next_value.abs() % 10) as u8
-        })
-        .collect();
+                // Only last digit is kept:
+                (next_value.abs() % 10) as u8
+            })
+            .collect();
     }
 
     // Get first 8 digits:
-    let res = data.iter().take(8).map(|d| char::from_digit((*d) as u32, 10).unwrap()).collect::<String>();
+    let res = data
+        .iter()
+        .take(8)
+        .map(|d| char::from_digit((*d) as u32, 10).unwrap())
+        .collect::<String>();
     AoCResult::Str(res)
 }
 
@@ -67,7 +72,8 @@ pub fn solve_part2(input: &String) -> AoCResult {
     }
 
     // Because the pattern at each position x starts with (x-1) zeroes, earlier numbers do not influence later values:
-    let offset : usize = data.iter()
+    let offset: usize = data
+        .iter()
         .take(7)
         .map(|d| char::from_digit((*d) as u32, 10).unwrap())
         .collect::<String>()
@@ -81,22 +87,25 @@ pub fn solve_part2(input: &String) -> AoCResult {
     // will all receive a '1' multiplier (so they are just summed up), which allows to simplify calculations:
     for _ in 0..100 {
         // Sum all remaining elements once:
-        let mut total_sum : u64 = data.iter().fold(0u64, |acc, x| acc + (*x as u64));
+        let mut total_sum: u64 = data.iter().fold(0u64, |acc, x| acc + (*x as u64));
 
-        data = data.into_iter().map(|d| {
-            let next_value = total_sum;
+        data = data
+            .into_iter()
+            .map(|d| {
+                let next_value = total_sum;
 
-            // Next element will be the same sum minus the current element:
-            total_sum -= d as u64;
+                // Next element will be the same sum minus the current element:
+                total_sum -= d as u64;
 
-            // Only last digit is kept:
-            (next_value % 10) as u8
-        })
-        .collect();
+                // Only last digit is kept:
+                (next_value % 10) as u8
+            })
+            .collect();
     }
 
     // Get first 8 digits:
-    let res = data.iter()
+    let res = data
+        .iter()
         .take(8)
         .map(|d| char::from_digit((*d) as u32, 10).unwrap())
         .collect::<String>();

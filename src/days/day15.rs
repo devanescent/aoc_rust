@@ -26,7 +26,9 @@ pub fn solve_part1(input: &String) -> AoCResult {
         let current_pos = movement_stack.last().unwrap().clone();
 
         // Keep track of explored locations:
-        visited_locations.entry(current_pos.clone()).or_insert(StatusCode::Empty);
+        visited_locations
+            .entry(current_pos.clone())
+            .or_insert(StatusCode::Empty);
 
         // Try moving in a new direction:
         let next_pos: Point;
@@ -54,7 +56,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
                     } else {
                         // Move back to previous position:
                         movement_stack.pop();
-                        if movement_stack.is_empty() { 
+                        if movement_stack.is_empty() {
                             break;
                         } else {
                             next_pos = movement_stack.last().unwrap().clone();
@@ -67,10 +69,10 @@ pub fn solve_part1(input: &String) -> AoCResult {
 
         // Convert next direction into input value:
         match current_pos.distance_to(&next_pos) {
-            Point{x: 0, y: -1} => { prgm.input.push_back(1); }
-            Point{x: 0, y: 1} => { prgm.input.push_back(2); }
-            Point{x: 1, y: 0} => { prgm.input.push_back(4); }
-            Point{x: -1, y: 0} => { prgm.input.push_back(3); }
+            Point { x: 0, y: -1 } => { prgm.input.push_back(1); }
+            Point { x: 0, y: 1 } => { prgm.input.push_back(2); }
+            Point { x: 1, y: 0 } => { prgm.input.push_back(4); }
+            Point { x: -1, y: 0 } => { prgm.input.push_back(3); }
             _ => panic!("Skipped a step!")
         }
 
@@ -100,7 +102,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
                     distance_to_oxygen = distance_moved;
                     visited_locations.insert(next_pos.clone(), StatusCode::OxygenSystem);
                 }
-                _ => { 
+                _ => {
                     // Wall / other
                     visited_locations.insert(next_pos.clone(), StatusCode::Wall);
                 }
@@ -116,7 +118,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
 }
 
 pub fn solve_part2(input: &String) -> AoCResult {
-   let mut prgm = IntcodeProgram::new(input, None);
+    let mut prgm = IntcodeProgram::new(input, None);
 
     // Movement of the robot, stack-based depth-first search:
     let mut movement_stack = vec![Point::new(0, 0)];
@@ -132,7 +134,9 @@ pub fn solve_part2(input: &String) -> AoCResult {
         let current_pos = movement_stack.last().unwrap().clone();
 
         // Keep track of explored locations:
-        visited_locations.entry(current_pos.clone()).or_insert(StatusCode::Empty);
+        visited_locations
+            .entry(current_pos.clone())
+            .or_insert(StatusCode::Empty);
 
         // Try moving in a new direction:
         let next_pos: Point;
@@ -160,7 +164,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
                     } else {
                         // Move back to previous position:
                         movement_stack.pop();
-                        if movement_stack.is_empty() { 
+                        if movement_stack.is_empty() {
                             break;
                         } else {
                             next_pos = movement_stack.last().unwrap().clone();
@@ -173,10 +177,10 @@ pub fn solve_part2(input: &String) -> AoCResult {
 
         // Convert next direction into input value:
         match current_pos.distance_to(&next_pos) {
-            Point{x: 0, y: -1} => { prgm.input.push_back(1); }
-            Point{x: 0, y: 1} => { prgm.input.push_back(2); }
-            Point{x: 1, y: 0} => { prgm.input.push_back(4); }
-            Point{x: -1, y: 0} => { prgm.input.push_back(3); }
+            Point { x: 0, y: -1 } => { prgm.input.push_back(1); }
+            Point { x: 0, y: 1 } => { prgm.input.push_back(2); }
+            Point { x: 1, y: 0 } => { prgm.input.push_back(4); }
+            Point { x: -1, y: 0 } => { prgm.input.push_back(3); }
             _ => panic!("Skipped a step!")
         }
 
@@ -199,7 +203,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
 
                     visited_locations.insert(next_pos.clone(), StatusCode::OxygenSystem);
                 }
-                _ => { 
+                _ => {
                     // Wall / other
                     visited_locations.insert(next_pos.clone(), StatusCode::Wall);
                 }
@@ -211,7 +215,11 @@ pub fn solve_part2(input: &String) -> AoCResult {
 
     // Oxygen spread:
     let mut oxygen = HashSet::<Point>::new();
-    let oxygen_start = visited_locations.iter().find(|x| x.1 == &StatusCode::OxygenSystem).unwrap().0;
+    let oxygen_start = visited_locations
+        .iter()
+        .find(|x| x.1 == &StatusCode::OxygenSystem)
+        .unwrap()
+        .0;
     oxygen.insert(oxygen_start.clone());
 
     // BFS for oxygen spread with minute the position was reached:
@@ -229,11 +237,16 @@ pub fn solve_part2(input: &String) -> AoCResult {
             current_pos.move_by(0, -1),
             current_pos.move_by(1, 0),
             current_pos.move_by(0, 1),
-            current_pos.move_by(-1, 0)
+            current_pos.move_by(-1, 0),
         ];
 
         for neighbor in nesw {
-            if !oxygen.contains(&neighbor) && visited_locations.iter().find(|x| x.1 == &StatusCode::Empty && x.0 == &neighbor).is_some() {
+            if !oxygen.contains(&neighbor)
+                && visited_locations
+                    .iter()
+                    .find(|x| x.1 == &StatusCode::Empty && x.0 == &neighbor)
+                    .is_some()
+            {
                 oxygen.insert(neighbor.clone());
                 oxigen_queue.push_back((neighbor, time + 1));
             }
@@ -241,46 +254,45 @@ pub fn solve_part2(input: &String) -> AoCResult {
     }
 
     AoCResult::Num(max_time)
-
 }
 
 #[derive(PartialEq)]
 enum StatusCode {
     Empty,
     Wall,
-    OxygenSystem
+    OxygenSystem,
 }
 
 fn print_to_console(points: &HashMap<Point, StatusCode>) {
-        // Dimensions of the painting area:
-        let mut x_min = 0;
-        let mut x_max = 0;
-        let mut y_min = 0;
-        let mut y_max = 0;
+    // Dimensions of the painting area:
+    let mut x_min = 0;
+    let mut x_max = 0;
+    let mut y_min = 0;
+    let mut y_max = 0;
 
-        let mut first_point = true;
-        for (p, _) in points.iter() {
-            if first_point || p.x < x_min { x_min = p.x; }
-            if first_point || p.x > x_max { x_max = p.x; }
-            if first_point || p.y < y_min { y_min = p.y; }
-            if first_point || p.y > y_max { y_max = p.y; }
-            first_point = false;
-        }
+    let mut first_point = true;
+    for (p, _) in points.iter() {
+        if first_point || p.x < x_min { x_min = p.x; }
+        if first_point || p.x > x_max { x_max = p.x; }
+        if first_point || p.y < y_min { y_min = p.y; }
+        if first_point || p.y > y_max { y_max = p.y; }
+        first_point = false;
+    }
 
-        let width = x_max - x_min + 1;
-        let height = y_max - y_min + 1;
-        let mut drawing = vec![' '; (width * height) as usize];
+    let width = x_max - x_min + 1;
+    let height = y_max - y_min + 1;
+    let mut drawing = vec![' '; (width * height) as usize];
 
-        for (p, status) in points.iter() {
-            drawing[((p.y - y_min) * width + (p.x - x_min)) as usize] = match status {
-                StatusCode::Empty if p.x == 0 && p.y == 0 => 'S',
-                StatusCode::Empty => '.',
-                StatusCode::Wall => '#',
-                StatusCode::OxygenSystem => 'O'
-            }
-        }
-
-        for line in drawing.chunks(width as usize) {
-            println!("{}", line.iter().collect::<String>());
+    for (p, status) in points.iter() {
+        drawing[((p.y - y_min) * width + (p.x - x_min)) as usize] = match status {
+            StatusCode::Empty if p.x == 0 && p.y == 0 => 'S',
+            StatusCode::Empty => '.',
+            StatusCode::Wall => '#',
+            StatusCode::OxygenSystem => 'O',
         }
     }
+
+    for line in drawing.chunks(width as usize) {
+        println!("{}", line.iter().collect::<String>());
+    }
+}

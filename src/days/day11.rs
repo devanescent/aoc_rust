@@ -1,24 +1,23 @@
 use std::collections::HashMap;
 
 use crate::aoc_result::AoCResult;
-use crate::shared::intcode::{InstructionResult, IntcodeProgram};
 use crate::shared::geometry::Point;
+use crate::shared::intcode::{InstructionResult, IntcodeProgram};
 
 make_day!(Day11);
 
 pub fn solve_part1(input: &String) -> AoCResult {
     let mut prgm = IntcodeProgram::new(input, None);
     let mut painting_robot = PaintingRobot::new();
-   
+
     painting_robot.run_paint_prgm(&mut prgm);
     AoCResult::Num(painting_robot.get_painted_panels())
 }
 
 pub fn solve_part2(input: &String) -> AoCResult {
-   
     let mut prgm = IntcodeProgram::new(input, None);
     let mut painting_robot = PaintingRobot::new();
-   
+
     // Start from white panel:
     painting_robot.paint(Color::White);
 
@@ -28,18 +27,17 @@ pub fn solve_part2(input: &String) -> AoCResult {
 }
 
 #[derive(Copy, Clone, PartialEq)]
-enum Direction
-{
+enum Direction {
     Up,
     Down,
     Left,
-    Right
+    Right,
 }
 
 #[derive(Copy, Clone, PartialEq)]
 enum Color {
     Black = 0,
-    White = 1
+    White = 1,
 }
 
 struct PaintingRobot {
@@ -51,10 +49,11 @@ struct PaintingRobot {
 
 impl PaintingRobot {
     fn new() -> Self {
-        PaintingRobot { 
-            position: Point{x: 0, y: 0},
+        PaintingRobot {
+            position: Point { x: 0, y: 0 },
             direction: Direction::Up,
-            painting_area: HashMap::<Point, Color>::new() }
+            painting_area: HashMap::<Point, Color>::new(),
+        }
     }
 
     fn turn_and_move(&mut self, turn_dir: Direction) {
@@ -116,8 +115,7 @@ impl PaintingRobot {
                 self.turn_and_move(turn_dir);
 
                 prgm.output.clear();
-
-            } else if prgm_state != InstructionResult::HALT{
+            } else if prgm_state != InstructionResult::HALT {
                 // Error during processing
                 return false;
             }

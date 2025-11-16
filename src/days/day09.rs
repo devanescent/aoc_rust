@@ -13,7 +13,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
 }
 
 pub fn solve_part2(input: &String) -> AoCResult {
-   let mut prgm = IntcodeProgram::new(input, None);
+    let mut prgm = IntcodeProgram::new(input, None);
     prgm.input.push_back(2);
     prgm.run();
 

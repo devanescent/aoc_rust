@@ -1,5 +1,5 @@
-use std::collections::{HashMap, VecDeque};
 use itertools::Itertools;
+use std::collections::{HashMap, VecDeque};
 
 use crate::aoc_result::AoCResult;
 
@@ -9,8 +9,11 @@ pub fn solve_part1(input: &String) -> AoCResult {
     let reactions = get_reactions(input);
 
     // Process all chemicals needed to produce 1 fuel:
-    let mut chemicals_to_produce : VecDeque<Chemical> = VecDeque::new();
-    chemicals_to_produce.push_back(Chemical { name: "FUEL".to_owned(), quantity: 1 });
+    let mut chemicals_to_produce: VecDeque<Chemical> = VecDeque::new();
+    chemicals_to_produce.push_back(Chemical {
+        name: "FUEL".to_owned(),
+        quantity: 1,
+    });
 
     let ore_amount = produce_chemicals_from_ore(&reactions, &mut chemicals_to_produce);
     AoCResult::Num(ore_amount)
@@ -20,8 +23,11 @@ pub fn solve_part2(input: &String) -> AoCResult {
     let reactions = get_reactions(input);
 
     // From part 1: produce 1 fuel to get unused chemicals during the process
-    let mut chemicals_to_produce : VecDeque<Chemical> = VecDeque::new();
-    chemicals_to_produce.push_back(Chemical { name: "FUEL".to_owned(), quantity: 1 });
+    let mut chemicals_to_produce: VecDeque<Chemical> = VecDeque::new();
+    chemicals_to_produce.push_back(Chemical {
+        name: "FUEL".to_owned(),
+        quantity: 1,
+    });
     let ore_for_1_fuel = produce_chemicals_from_ore(&reactions, &mut chemicals_to_produce);
 
     let available_ore = 1000000000000u64;
@@ -32,7 +38,10 @@ pub fn solve_part2(input: &String) -> AoCResult {
     // Find an upper bound value:
     let mut fuel_upper_bound = fuel_lower_bound * 2;
     loop {
-        chemicals_to_produce.push_back(Chemical { name: "FUEL".to_owned(), quantity: fuel_upper_bound });
+        chemicals_to_produce.push_back(Chemical {
+            name: "FUEL".to_owned(),
+            quantity: fuel_upper_bound,
+        });
         let ore_amount = produce_chemicals_from_ore(&reactions, &mut chemicals_to_produce);
         if ore_amount > available_ore {
             break;
@@ -46,9 +55,11 @@ pub fn solve_part2(input: &String) -> AoCResult {
         // Midpoint:
         let fuel_amount = fuel_lower_bound + ((fuel_upper_bound - fuel_lower_bound) / 2);
 
-        chemicals_to_produce.push_back(Chemical { name: "FUEL".to_owned(), quantity: fuel_amount });
+        chemicals_to_produce.push_back(Chemical {
+            name: "FUEL".to_owned(),
+            quantity: fuel_amount,
+        });
         let ore_amount = produce_chemicals_from_ore(&reactions, &mut chemicals_to_produce);
-
 
         if ore_amount > available_ore {
             // Too much, lower upper bound:
@@ -91,13 +102,13 @@ fn get_reactions(input: &String) -> HashMap<String, Reaction> {
 
 fn produce_chemicals_from_ore(
     reactions: &HashMap<String, Reaction>,
-    chemicals_to_produce: &mut VecDeque<Chemical>) -> u64 {
-
+    chemicals_to_produce: &mut VecDeque<Chemical>,
+) -> u64 {
     // Get amount of ORE needed for producing the given chemicals:
     let mut ore_amount = 0u64;
 
     // Keep note of chemicals that were "overproduced":
-    let mut unused_chems =  HashMap::<String, Chemical>::new();
+    let mut unused_chems = HashMap::<String, Chemical>::new();
 
     while !chemicals_to_produce.is_empty() {
         let mut next_chem = chemicals_to_produce.pop_front().unwrap();
@@ -135,22 +146,27 @@ fn produce_chemicals_from_ore(
                 let output = reaction.output.clone_and_scale(scale);
                 if output.quantity > next_chem.quantity {
                     let unused_amount = output.quantity - next_chem.quantity;
-                    unused_chems.entry(output.name.clone())
-                        .and_modify(|c| { c.update_quantity(|q| q + unused_amount ); })
-                        .or_insert_with_key(|key| Chemical { name: key.clone(), quantity: unused_amount });
+                    unused_chems
+                        .entry(output.name.clone())
+                        .and_modify(|c| {
+                            c.update_quantity(|q| q + unused_amount);
+                        })
+                        .or_insert_with_key(|key| Chemical {
+                            name: key.clone(),
+                            quantity: unused_amount,
+                        });
                 }
             }
         }
     }
 
     ore_amount
-
 }
 
 #[derive(Clone)]
 struct Chemical {
     name: String,
-    quantity: u64
+    quantity: u64,
 }
 
 impl Chemical {
@@ -166,16 +182,16 @@ impl Chemical {
 impl From<&str> for Chemical {
     fn from(value: &str) -> Self {
         let quan_and_ingr = value.trim().split_once(' ').unwrap();
-        Chemical { 
+        Chemical {
             name: quan_and_ingr.1.to_owned(),
-            quantity: quan_and_ingr.0.parse().unwrap()
+            quantity: quan_and_ingr.0.parse().unwrap(),
         }
     }
 }
 
 struct Reaction {
     input: Vec<Chemical>,
-    output: Chemical
+    output: Chemical,
 }
 
 #[cfg(test)]

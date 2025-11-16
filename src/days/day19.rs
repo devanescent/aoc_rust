@@ -35,8 +35,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
     loop {
         // Check if bounding box is fully inside the tractor beam:
         let mut square_fits = true;
-        'bounds_loop: 
-        for dx in 0..100 {
+        'bounds_loop: for dx in 0..100 {
             let y_step = if dx == 0 || dx == 99 { 1 } else { 99 };
             for dy in (0..100).step_by(y_step) {
                 if !is_point_in_tractor_beam(&input, x + dx, y + dy) {
