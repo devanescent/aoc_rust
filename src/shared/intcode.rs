@@ -133,6 +133,13 @@ impl IntcodeProgram {
         }
     }
 
+    pub fn input_ascii(&mut self, ascii: &str) {
+        for c in ascii.chars() {
+            let ascii_value = c as u8;
+            self.input.push_back(ascii_value as i64);
+        }
+    }
+
     // Runs the intcode program
     pub fn run(&mut self) -> InstructionResult {
         self.instr_ptr = 0;
