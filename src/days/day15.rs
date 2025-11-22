@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 use crate::aoc_result::AoCResult;
 use crate::shared::geometry::Point;
-use crate::shared::intcode::IntcodeProgram;
+use crate::shared::intcode::{IntcodeProgram, RunMode};
 
 make_day!(Day15);
 
@@ -19,7 +19,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
     let mut distance_to_oxygen = 0u64;
 
     // Start program:
-    prgm.run();
+    prgm.run(RunMode::Free);
 
     while !movement_stack.is_empty() {
         // Current top of the stack:
@@ -127,7 +127,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
     let mut visited_locations = HashMap::<Point, StatusCode>::new();
 
     // Start program to build map:
-    prgm.run();
+    prgm.run(RunMode::Free);
 
     while !movement_stack.is_empty() {
         // Current top of the stack:

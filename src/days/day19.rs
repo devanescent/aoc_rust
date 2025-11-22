@@ -1,5 +1,5 @@
 use crate::aoc_result::AoCResult;
-use crate::shared::intcode::IntcodeProgram;
+use crate::shared::intcode::{IntcodeProgram, RunMode};
 
 make_day!(Day19);
 
@@ -76,6 +76,6 @@ fn is_point_in_tractor_beam(input: &String, x: i64, y: i64) -> bool {
     let mut prgm: IntcodeProgram = IntcodeProgram::new(input, None);
     prgm.input.push_back(x);
     prgm.input.push_back(y);
-    prgm.run();
+    prgm.run(RunMode::Free);
     prgm.output[0] == 1
 }

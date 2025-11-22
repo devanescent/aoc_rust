@@ -1,5 +1,5 @@
 use crate::aoc_result::AoCResult;
-use crate::shared::intcode::IntcodeProgram;
+use crate::shared::intcode::{IntcodeProgram, RunMode};
 
 make_day!(Day05);
 
@@ -7,7 +7,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
     let mut prgm = IntcodeProgram::new(input, None);
 
     prgm.input.push_back(1);
-    prgm.run();
+    prgm.run(RunMode::Free);
 
     let diagnostic_code = *prgm.output.last().unwrap();
     AoCResult::Num(u64::try_from(diagnostic_code).unwrap())
@@ -17,7 +17,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
     let mut prgm = IntcodeProgram::new(input, None);
 
     prgm.input.push_back(5);
-    prgm.run();
+    prgm.run(RunMode::Free);
 
     let diagnostic_code = prgm.output[0];
     AoCResult::Num(u64::try_from(diagnostic_code).unwrap())
@@ -32,21 +32,21 @@ mod tests {
         // Program that outputs whatever it gets as input
         let mut prgm = IntcodeProgram::from(vec![3, 0, 4, 0, 99]);
         prgm.input.push_back(123);
-        prgm.run();
+        prgm.run(RunMode::Free);
         assert_eq!(prgm.output[0], 123);
     }
 
     #[test]
     fn part1_example2() {
         let mut prgm = IntcodeProgram::from(vec![1002, 4, 3, 4, 33]);
-        prgm.run();
+        prgm.run(RunMode::Free);
         assert_eq!(prgm.read(4), 99);
     }
 
     #[test]
     fn part1_example3() {
         let mut prgm = IntcodeProgram::from(vec![1101, 100, -1, 4, 0]);
-        prgm.run();
+        prgm.run(RunMode::Free);
         assert_eq!(prgm.read(4), 99);
     }
 
@@ -57,12 +57,12 @@ mod tests {
 
         let mut prgm1 = IntcodeProgram::from(code.clone());
         prgm1.input.push_back(8);
-        prgm1.run();
+        prgm1.run(RunMode::Free);
         assert_eq!(prgm1.output[0], 1);
 
         let mut prgm2 = IntcodeProgram::from(code);
         prgm2.input.push_back(42);
-        prgm2.run();
+        prgm2.run(RunMode::Free);
         assert_eq!(prgm2.output[0], 0);
     }
 
@@ -73,12 +73,12 @@ mod tests {
 
         let mut prgm1 = IntcodeProgram::from(code.clone());
         prgm1.input.push_back(4);
-        prgm1.run();
+        prgm1.run(RunMode::Free);
         assert_eq!(prgm1.output[0], 1);
 
         let mut prgm2 = IntcodeProgram::from(code);
         prgm2.input.push_back(42);
-        prgm2.run();
+        prgm2.run(RunMode::Free);
         assert_eq!(prgm2.output[0], 0);
     }
 
@@ -89,12 +89,12 @@ mod tests {
 
         let mut prgm1 = IntcodeProgram::from(code.clone());
         prgm1.input.push_back(8);
-        prgm1.run();
+        prgm1.run(RunMode::Free);
         assert_eq!(prgm1.output[0], 1);
 
         let mut prgm2 = IntcodeProgram::from(code);
         prgm2.input.push_back(42);
-        prgm2.run();
+        prgm2.run(RunMode::Free);
         assert_eq!(prgm2.output[0], 0);
     }
 
@@ -105,12 +105,12 @@ mod tests {
 
         let mut prgm1 = IntcodeProgram::from(code.clone());
         prgm1.input.push_back(4);
-        prgm1.run();
+        prgm1.run(RunMode::Free);
         assert_eq!(prgm1.output[0], 1);
 
         let mut prgm2 = IntcodeProgram::from(code);
         prgm2.input.push_back(42);
-        prgm2.run();
+        prgm2.run(RunMode::Free);
         assert_eq!(prgm2.output[0], 0);
     }
 
@@ -121,12 +121,12 @@ mod tests {
 
         let mut prgm1 = IntcodeProgram::from(code.clone());
         prgm1.input.push_back(0);
-        prgm1.run();
+        prgm1.run(RunMode::Free);
         assert_eq!(prgm1.output[0], 0);
 
         let mut prgm2 = IntcodeProgram::from(code);
         prgm2.input.push_back(42);
-        prgm2.run();
+        prgm2.run(RunMode::Free);
         assert_eq!(prgm2.output[0], 1);
     }
 
@@ -137,12 +137,12 @@ mod tests {
 
         let mut prgm1 = IntcodeProgram::from(code.clone());
         prgm1.input.push_back(0);
-        prgm1.run();
+        prgm1.run(RunMode::Free);
         assert_eq!(prgm1.output[0], 0);
 
         let mut prgm2 = IntcodeProgram::from(code);
         prgm2.input.push_back(42);
-        prgm2.run();
+        prgm2.run(RunMode::Free);
         assert_eq!(prgm2.output[0], 1);
     }
 
@@ -157,17 +157,17 @@ mod tests {
 
         let mut prgm1 = IntcodeProgram::from(code.clone());
         prgm1.input.push_back(7);
-        prgm1.run();
+        prgm1.run(RunMode::Free);
         assert_eq!(prgm1.output[0], 999);
 
         let mut prgm2 = IntcodeProgram::from(code.clone());
         prgm2.input.push_back(8);
-        prgm2.run();
+        prgm2.run(RunMode::Free);
         assert_eq!(prgm2.output[0], 1000);
 
         let mut prgm3 = IntcodeProgram::from(code);
         prgm3.input.push_back(9);
-        prgm3.run();
+        prgm3.run(RunMode::Free);
         assert_eq!(prgm3.output[0], 1001);
     }
 }

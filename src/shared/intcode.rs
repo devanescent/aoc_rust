@@ -88,14 +88,19 @@ impl Instruction {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum InstructionResult {
     RUNNING,
     WAIT_FOR_INPUT,
     HALT,
     EOF,
-    ERROR,
+    UNKNOWN_OP_CODE,
+}
+
+pub enum RunMode {
+    Free,
+    Step
 }
 
 impl IntcodeProgram {
@@ -141,26 +146,37 @@ impl IntcodeProgram {
     }
 
     // Runs the intcode program
-    pub fn run(&mut self) -> InstructionResult {
+    pub fn run(&mut self, mode: RunMode) -> InstructionResult {
         self.instr_ptr = 0;
-        self.run_continue()
+        match mode {
+            RunMode::Free => self.run_continue(),
+            RunMode::Step => self.run_step()
+        }
     }
 
     // Continues a paused intcode program
     pub fn run_continue(&mut self) -> InstructionResult {
-        while let Some(instr) = self.next_instruction() {
-            let instr_res: InstructionResult = self.apply_instruction(&instr);
+        let mut last_state = self.run_step();
+        while last_state == InstructionResult::RUNNING {
+            last_state = self.run_step();
+        };
+        return last_state;
+    }
 
-            if instr_res != InstructionResult::RUNNING {
-                if instr_res == InstructionResult::WAIT_FOR_INPUT {
-                    // Reset instruction pointer so current instruction can be run again when program is continued:
-                    self.instr_ptr -= instr.get_arg_count() + 1;
-                }
-                return instr_res;
+    // Run a single instruction
+    pub fn run_step(&mut self) -> InstructionResult {
+        if let Some(instr) = self.next_instruction() {
+            let next_state: InstructionResult = self.apply_instruction(&instr);
+
+            if next_state == InstructionResult::WAIT_FOR_INPUT {
+                // Reset instruction pointer so current instruction can be run again when program is continued:
+                self.instr_ptr -= instr.get_arg_count() + 1;
             }
-        }
 
-        InstructionResult::EOF
+            return next_state;
+        } else {
+            InstructionResult::EOF
+        }
     }
 
     // Retrieve the value at the current instruction pointer and move the pointer forward:
@@ -297,7 +313,7 @@ impl IntcodeProgram {
                 self.relative_base_offset += instr.arg1.unwrap();
                 InstructionResult::RUNNING
             }
-            _ => InstructionResult::ERROR,
+            _ => InstructionResult::UNKNOWN_OP_CODE,
         }
     }
 }

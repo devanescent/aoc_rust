@@ -1,13 +1,13 @@
 use std::{thread, time};
 
 use crate::aoc_result::AoCResult;
-use crate::shared::intcode::{InstructionResult, IntcodeProgram};
+use crate::shared::intcode::{InstructionResult, IntcodeProgram, RunMode};
 
 make_day!(Day13);
 
 pub fn solve_part1(input: &String) -> AoCResult {
     let mut prgm = IntcodeProgram::new(input, None);
-    prgm.run();
+    prgm.run(RunMode::Free);
 
     let tiles: Vec<_> = prgm
         .output
@@ -33,7 +33,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
     // Set memory location 0:
     prgm.write(0, 2);
 
-    let mut prgm_state = prgm.run();
+    let mut prgm_state = prgm.run(RunMode::Free);
 
     let mut screen = Option::<Screen>::None;
     let mut ball_x = 0i64;

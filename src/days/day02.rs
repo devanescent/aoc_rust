@@ -1,5 +1,5 @@
 use crate::aoc_result::AoCResult;
-use crate::shared::intcode::IntcodeProgram;
+use crate::shared::intcode::{IntcodeProgram, RunMode};
 
 make_day!(Day02);
 
@@ -9,7 +9,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
     // Do replacements and run program:
     prgm.write(1, 12);
     prgm.write(2, 2);
-    prgm.run();
+    prgm.run(RunMode::Free);
 
     AoCResult::Num(u64::try_from(prgm.read(0)).unwrap())
 }
@@ -25,7 +25,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
             prgm_cpy.write(1, noun);
             prgm_cpy.write(2, verb);
 
-            prgm_cpy.run();
+            prgm_cpy.run(RunMode::Free);
             if prgm_cpy.read(0) == 19690720 {
                 return AoCResult::Num(u64::try_from(100 * noun + verb).unwrap());
             }
@@ -42,7 +42,7 @@ mod tests {
     #[test]
     fn part1_example1() {
         let mut prgm = IntcodeProgram::from(vec![1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50]);
-        prgm.run();
+        prgm.run(RunMode::Free);
         assert_eq!(prgm.read(0), 3500);
     }
 }

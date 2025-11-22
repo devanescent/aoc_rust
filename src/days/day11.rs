@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::aoc_result::AoCResult;
 use crate::shared::geometry::Point;
-use crate::shared::intcode::{InstructionResult, IntcodeProgram};
+use crate::shared::intcode::{InstructionResult, IntcodeProgram, RunMode};
 
 make_day!(Day11);
 
@@ -91,7 +91,7 @@ impl PaintingRobot {
     }
 
     fn run_paint_prgm(&mut self, prgm: &mut IntcodeProgram) -> bool {
-        let mut prgm_state = prgm.run();
+        let mut prgm_state = prgm.run(RunMode::Free);
         while prgm_state == InstructionResult::WAIT_FOR_INPUT {
             // Provide camera input to the program:
             let camera_input = self.get_camera_input();

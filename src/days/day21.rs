@@ -1,5 +1,5 @@
 use crate::aoc_result::AoCResult;
-use crate::shared::intcode::IntcodeProgram;
+use crate::shared::intcode::{IntcodeProgram, RunMode};
 
 make_day!(Day21);
 
@@ -14,7 +14,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
     prgm.input_ascii("OR T J\n");
     prgm.input_ascii("AND D J\n");
     prgm.input_ascii("WALK\n");
-    prgm.run();
+    prgm.run(RunMode::Free);
 
     let mut camera_view: Vec<String> = vec![];
     for out_line in prgm.output.chunk_by(|a, _| a != &10) {
@@ -46,7 +46,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
     prgm.input_ascii("NOT A T\n");
     prgm.input_ascii("OR T J\n");
     prgm.input_ascii("RUN\n");
-    prgm.run();
+    prgm.run(RunMode::Free);
 
     let mut camera_view: Vec<String> = vec![];
     for out_line in prgm.output.chunk_by(|a, _| a != &10) {

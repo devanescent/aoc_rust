@@ -1,5 +1,5 @@
 use crate::aoc_result::AoCResult;
-use crate::shared::intcode::{InstructionResult, IntcodeProgram};
+use crate::shared::intcode::{InstructionResult, IntcodeProgram, RunMode};
 use itertools::Itertools;
 
 make_day!(Day07);
@@ -16,7 +16,7 @@ pub fn solve_part1(input: &String) -> AoCResult {
             let mut amp_prgm = prgm.clone();
             amp_prgm.input.push_back(*phase);
             amp_prgm.input.push_back(prev_output);
-            amp_prgm.run();
+            amp_prgm.run(RunMode::Free);
             prev_output = amp_prgm.output[0];
         }
 
@@ -51,7 +51,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
         // Set initial inputs and start running each amp;
         for i in 0..=4 {
             amp_prgms[i].input.push_back(*phase_settings_perm[i]);
-            amp_states[i] = amp_prgms[i].run();
+            amp_states[i] = amp_prgms[i].run(RunMode::Free);
         }
 
         // Move data between amps and run until the last one halts:

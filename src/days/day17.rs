@@ -1,11 +1,11 @@
 use crate::aoc_result::AoCResult;
-use crate::shared::intcode::IntcodeProgram;
+use crate::shared::intcode::{IntcodeProgram, RunMode};
 
 make_day!(Day17);
 
 pub fn solve_part1(input: &String) -> AoCResult {
     let mut prgm = IntcodeProgram::new(input, None);
-    prgm.run();
+    prgm.run(RunMode::Free);
 
     let mut camera_view: Vec<String> = vec![];
     for out_line in prgm.output.chunk_by(|a, _| a != &10) {
@@ -77,7 +77,7 @@ pub fn solve_part2(input: &String) -> AoCResult {
     prgm.input.push_back(('n' as u8) as i64);
     prgm.input.push_back(10);
 
-    prgm.run();
+    prgm.run(RunMode::Free);
     let res = *prgm.output.last().unwrap();
     AoCResult::Num(res as u64)
 }
