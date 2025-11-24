@@ -36,7 +36,8 @@ pub fn solve(day: u8, part: u8, input: &String) -> AoCResult {
         22 => Some(&day22::Day22 {}),
         23 => Some(&day23::Day23 {}),
         24 => Some(&day24::Day24 {}),
-        _ => None,
+        25 => Some(&day25::Day25 {}),
+         _ => None,
     };
 
     if let Some(solver) = solver {
