@@ -1,9 +1,14 @@
+[workspace]
+resolver = "3"
+members = ["aoc_2019"]
+
 [package]
-name = "aoc_2019"
+name = "aoc_rust"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.51", features = ["derive"] }
-itertools = "0.14.0"
-regex = "1.12.2"
+aoc_core = { path = "./aoc_core" }
+aoc_2019 = { path = "./aoc_2019" }
+aoc_2025 = { path = "./aoc_2025" }
