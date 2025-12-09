@@ -14,6 +14,7 @@ pub fn solve(day: u8, part: u8, input: &String) -> AoCResult {
          6 => Some(&day06::Day06 {}),
          7 => Some(&day07::Day07 {}),
          8 => Some(&day08::Day08 {}),
+         9 => Some(&day09::Day09 {}),
          _ => None,
     };
 
