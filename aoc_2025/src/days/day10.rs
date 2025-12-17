@@ -1,6 +1,5 @@
-use std::cmp::min;
-
 use aoc_core::AoCResult;
+use std::cmp::min;
 use itertools::Itertools;
 
 aoc_core::make_day!(Day10);

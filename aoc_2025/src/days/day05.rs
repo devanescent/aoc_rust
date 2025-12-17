@@ -1,6 +1,5 @@
-use std::{cmp::max, collections::HashSet};
-
 use aoc_core::AoCResult;
+use std::cmp::max;
 use itertools::Itertools;
 
 aoc_core::make_day!(Day05);

@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use aoc_core::AoCResult;
+use std::collections::HashMap;
 use itertools::Itertools;
 
 aoc_core::make_day!(Day11);

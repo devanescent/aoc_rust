@@ -1,6 +1,5 @@
-use std::collections::{HashSet, HashMap, VecDeque};
-
 use aoc_core::AoCResult;
+use std::collections::{HashSet, HashMap, VecDeque};
 use itertools::Itertools;
 
 aoc_core::make_day!(Day07);

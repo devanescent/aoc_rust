@@ -1,6 +1,5 @@
-use std::{cmp::{Reverse, max, min}};
-
 use aoc_core::AoCResult;
+use std::{cmp::{Reverse, max, min}};
 use itertools::Itertools;
 
 aoc_core::make_day!(Day09);
